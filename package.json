@@ -1,0 +1,12 @@
+{
+	"name": "dailyfeed",
+	"version": "1.0.0",
+	"license": "ISC",
+	"main": "src/app.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"dependencies": {
+		"express": "~4.9.8"
+	}
+}

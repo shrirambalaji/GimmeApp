@@ -7,9 +7,6 @@ var app = express();
 flock.setAppId(config.appId);
 flock.setAppSecret(config.appSecret);
 
-// app.use(myParser.urlencoded({extended : false}));
-// app.use(myParser.json());
-
 app.use(flock.events.tokenVerifier);
 
 app.post('/events', flock.events.listener);

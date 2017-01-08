@@ -2,7 +2,6 @@ var express = require('express');
 var flock = require('flockos');
 var config = require('./config');
 var myParser = require("body-parser");
-var db = require('./db');
 var mongodb = require('mongodb');
 var app = express();
 
@@ -54,8 +53,6 @@ flock.events.on('app.uninstall', function(event) {
         }
     });
 });
-
-
 
 
 //this starts the listening on the particular port

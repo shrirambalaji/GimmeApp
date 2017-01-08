@@ -2,7 +2,10 @@ var express = require('express');
 var flock = require('flockos');
 var config = require('./config');
 var myParser = require("body-parser");
+var Mustache = require('mustache');
 var mongodb = require('mongodb');
+var store = require('./store');
+
 var app = express();
 
 var MongoClient = mongodb.MongoClient;

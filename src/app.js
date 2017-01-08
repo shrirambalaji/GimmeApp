@@ -3,7 +3,6 @@ var flock = require('flockos');
 var config = require('./config');
 var myParser = require("body-parser");
 var Mustache = require('mustache');
-var mongodb = require('mongodb');
 var store = require('./store');
 
 var app = express();
@@ -57,6 +56,13 @@ flock.events.on('app.uninstall', function(event) {
     });
 });
 
+flock.events.on('client.slashCommand', function (event) {
+
+
+
+
+
+});
 
 //this starts the listening on the particular port
 app.listen(config.port, function() {

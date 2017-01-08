@@ -1,17 +1,24 @@
 var express = require('express');
 var flock = require('flockos');
+var config = require('./config');
 var myParser = require("body-parser");
 var app = express();
-app.use(myParser.urlencoded({extended : false}));
-app.use(myParser.json());
 
-//post request handles the /events request from flock
-app.post('/events',function(req,res){
-  console.log(req.body);
-  res.sendStatus(200);
+flock.setAppId(config.appId);
+flock.setAppSecret(config.appSecret);
+
+// app.use(myParser.urlencoded({extended : false}));
+// app.use(myParser.json());
+
+app.use(flock.events.tokenVerifier);
+
+app.post('/events', flock.events.listener);
+
+flock.events.on('app.install', function (event) {
 });
 
+
 //this starts the listening on the particular port
-app.listen(80, function () {
+app.listen(config.port, function () {
   console.log('DailyFeed listening on port 80!');
 });

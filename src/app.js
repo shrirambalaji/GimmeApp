@@ -122,7 +122,7 @@ flock.events.on('client.slashCommand', function(event) {
 
 flock.events.on('client.slashCommand', function(event) {
 
-    var tok = "a6de9d0d-2932-4c22-9e2e-52eaddaf6c75";
+    var tok = "4ba2507e-247b-4622-b462-6498aea33508";
     flock.groups.list(tok, null, function(error, response) {
         if (error) {
             console.log('error: ', error);
@@ -131,7 +131,7 @@ flock.events.on('client.slashCommand', function(event) {
         }
     });
 
-    var uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({ source: "the-hindu", apiKey: "13228478c1034a9db6cca38e772ea590" })
+    var uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({ source: "bbc-news", apiKey: "13228478c1034a9db6cca38e772ea590" })
     options = {};
     request.get(uri, options, function(err, res, body) {
         if (err) {
@@ -150,7 +150,11 @@ flock.events.on('client.slashCommand', function(event) {
                     "text": "",
                     "attachments": [{
                         "title": articles[i].title,
+                        "author":articles[i].author,
                         "description": articles[i].description,
+
+						"url": articles[i].url,
+
                         "views": {
                             "image": {
                                 "original": {
@@ -158,7 +162,6 @@ flock.events.on('client.slashCommand', function(event) {
                                 }
                             }
                         },
-                        "url": articles[i].url
 
 
                     }]

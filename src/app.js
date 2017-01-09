@@ -32,6 +32,7 @@ MongoClient.connect(config.dburl, function(err, db) {
     }
 });
 
+
 //manipulating app.install event
 flock.events.on('app.install', function(event) {
     var collection = mongoConnection.collection('users');
@@ -61,12 +62,14 @@ flock.events.on('app.uninstall', function(event) {
 flock.events.on('client.slashCommand', function(event) {
 
     var collection = mongoConnection.collection('users');
+
+    console.log("userid: " + event.userId);
     collection.findOne({
         "userId": event.userId
     }, function(err, document) {
         tokens = document.token;
+
     });
-    var tok = "a6de9d0d-2932-4c22-9e2e-52eaddaf6c75";
     flock.groups.list(tokens, null, function(error, response) {
         if (error) {
             console.log('error: ', error);
@@ -114,64 +117,6 @@ flock.events.on('client.slashCommand', function(event) {
                     }
                 });
         }
-    });
-    return {
-        text: "Loading Articles For Today's Feed!"
-    }
-});
-
-flock.events.on('client.slashCommand', function(event) {
-
-    var tok = "4ba2507e-247b-4622-b462-6498aea33508";
-    flock.groups.list(tok, null, function(error, response) {
-        if (error) {
-            console.log('error: ', error);
-        } else {
-            console.log(response);
-        }
-    });
-
-    var uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({ source: "bbc-news", apiKey: "13228478c1034a9db6cca38e772ea590" })
-    options = {};
-    request.get(uri, options, function(err, res, body) {
-        if (err) {
-            return {
-                text: "Could'nt fetch the news. Try Again Later."
-            }
-        }
-
-        var body = JSON.parse(body);
-        var articles = body.articles;
-
-        for (var i = 0; i < articles.length; i++) {
-            //TODO: handle err
-            flock.callMethod('chat.sendMessage', tok, {
-                    to: event.chat,
-                    "text": "",
-                    "attachments": [{
-                        "title": articles[i].title,
-                        "author":articles[i].author,
-                        "description": articles[i].description,
-
-						"url": articles[i].url,
-
-                        "views": {
-                            "image": {
-                                "original": {
-                                    "src": articles[i].urlToImage
-                                }
-                            }
-                        },
-
-
-                    }]
-                },
-                function(error, response) {
-                    if (!error) {
-                        console.log(response);
-                    }
-                });
-        }
 
 
     });
@@ -193,6 +138,4 @@ app.listen(config.port, function() {
 
 process.on('SIGINT', process.exit);
 process.on('SIGTERM', process.exit);
-process.on('exit', function() {
-
-});
+process.on('exit', function() {});

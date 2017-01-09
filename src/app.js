@@ -22,7 +22,7 @@ app.post('/events', flock.events.listener);
 
 var mongoConnection;
 var tokens;
-
+//connecting to mongodb
 MongoClient.connect(config.dburl, function(err, db) {
     mongoConnection = db;
     if (err) {
@@ -58,12 +58,15 @@ flock.events.on('app.uninstall', function(event) {
 
 });
 
-
+//manipulating slash commands
 flock.events.on('client.slashCommand', function(event) {
 
     var collection = mongoConnection.collection('users');
 
-    console.log("userid: " + event.userId);
+    //splitting sub commands
+    var text = event.text.split(" ");
+
+    console.log("userid: " + event.text);
     collection.findOne({
         "userId": event.userId
     }, function(err, document) {
@@ -78,57 +81,60 @@ flock.events.on('client.slashCommand', function(event) {
         }
     });
 
-    var uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({
-        source: "the-hindu",
-        apiKey: "13228478c1034a9db6cca38e772ea590"
-    })
-    options = {};
-    request.get(uri, options, function(err, res, body) {
-        if (err) {
-            return {
-                text: "Could'nt fetch the news. Try Again Later."
-            }
-        }
-
-        var body = JSON.parse(body);
-        var articles = body.articles;
-
-        for (var i = 0; i < articles.length; i++) {
-            //TODO: handle err
-            flock.callMethod('chat.sendMessage', "2f0b32a0-e0bf-4011-9dec-914ef29977e3", {
-                    to: event.chat,
-                    "text": "",
-                    "attachments": [{
-                        "title": articles[i].title,
-                        "description": articles[i].description,
-                        "views": {
-                            "image": {
-                                "original": {
-                                    "src": articles[i].urlToImage
-                                }
-                            }
-                        },
-                        "url": articles[i].url
-                    }]
-                },
-                function(error, response) {
-                    if (!error) {
-                        console.log(response);
+    //sub categories
+    switch (text[0]) {
+        //NEWS
+        case "news":
+            var category = text[1];
+            var uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({
+                source: "espn-cric-info",
+                sortBy: "latest",
+                apiKey: "13228478c1034a9db6cca38e772ea590"
+            })
+            options = {};
+            request.get(uri, options, function(err, res, body) {
+                if (err) {
+                    return {
+                        text: "Could'nt fetch the news. Try Again Later."
                     }
-                });
-        }
+                }
 
-
-    });
-
+                var body = JSON.parse(body);
+                var articles = body.articles;
 
 
 
-    return {
-        text: "Loading Articles For Today's Feed!"
+                for (var i = 0; i < articles.length; i++) {
+                    //TODO: handle err
+                    flock.callMethod('chat.sendMessage', config.botToken, {
+                            to: event.chat,
+                            "text": "",
+                            "attachments": [{
+                                "title": articles[i].title,
+                                "description": articles[i].description,
+                                "views": {
+                                    "image": {
+                                        "original": {
+                                            "src": articles[i].urlToImage
+                                        }
+                                    }
+                                },
+                                "url": articles[i].url
+                            }]
+                        },
+                        function(error, response) {
+                            if (!error) {
+                                console.log(response);
+                            }
+                        });
+                }
+            });
+            return {
+                text: "Loading Articles For Today's Feed!"
+            }
+            //End of news
+            break;
     }
-
-
 });
 
 //this starts the listening on the particular port
@@ -137,5 +143,3 @@ app.listen(config.port, function() {
 });
 
 process.on('SIGINT', process.exit);
-process.on('SIGTERM', process.exit);
-process.on('exit', function() {});

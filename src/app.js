@@ -36,7 +36,7 @@ flock.events.on('app.install', function(event) {
     });
 });
 
-//remove user id from db on unistall
+//remove user id from db on uninstall
 flock.events.on('app.uninstall', function(event) {
     MongoClient.connect(config.dburl, function(err, db) {
         if (err) {

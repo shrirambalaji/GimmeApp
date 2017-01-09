@@ -20,68 +20,55 @@ app.use(flock.events.tokenVerifier);
 //setting relative path for Event listener
 app.post('/events', flock.events.listener);
 
-
+var mongoConnection;
 var tokens;
-try {
-    tokens = require('./tokens.json');
-    var token = tokens[event.token];
-} catch (e) {
-    tokens = {};
-}
+
+MongoClient.connect(config.dburl, function(err, db) {
+    mongoConnection = db;
+    if (err) {
+        console.log('Unable to connect to the mongoDB server. Error:', err);
+    } else {
+        console.log('Connection established to', config.dburl);
+    }
+});
+
+
 //manipulating app.install event
 flock.events.on('app.install', function(event) {
-    MongoClient.connect(config.dburl, function(err, db) {
-        if (err) {
-            console.log('Unable to connect to the mongoDB server. Error:', err);
-        } else {
-            console.log('Connection established to', config.dburl);
-            var collection = db.collection('users');
-            collection.insert({
-                "userId": event.userId,
-                "token": event.token
-            }, function(err, doc) {
-                if (err) throw err;
-                console.log(event);
-            });
-        }
+    var collection = mongoConnection.collection('users');
+    collection.insert({
+        "userId": event.userId,
+        "token": event.token
+    }, function(err, doc) {
+        if (err) throw err;
     });
-
-    //Local persist - temp
-    tokens[event.userId] = event.userId;
-    tokens[event.token] = event.token
 
 });
 
 //remove user id from db on uninstall
 flock.events.on('app.uninstall', function(event) {
-    MongoClient.connect(config.dburl, function(err, db) {
-        if (err) {
-            console.log('Unable to connect to the mongoDB server. Error:', err);
-        } else {
-            console.log('Connection established to', config.dburl);
-            var collection = db.collection('users');
-            collection.remove({
-                "userId": event.userId
-            }, function(err, doc) {
-                if (err) throw err;
-                console.log(event);
-            });
-        }
+
+    var collection = mongoConnection.collection('users');
+    collection.remove({
+        "userId": event.userId
+    }, function(err, doc) {
+        if (err) throw err;
+        console.log(event);
     });
-
-    //Local del
-    delete tokens[event.userId];
-    delete tokens[event.token];
-
-
 
 });
 
 
 flock.events.on('client.slashCommand', function(event) {
 
+    var collection = mongoConnection.collection('users');
+    collection.findOne({
+        "userId": event.userId
+    }, function(err, document) {
+        tokens = document.token;
+    });
     var tok = "a6de9d0d-2932-4c22-9e2e-52eaddaf6c75";
-    flock.groups.list(tok, null, function(error, response) {
+    flock.groups.list(tokens, null, function(error, response) {
         if (error) {
             console.log('error: ', error);
         } else {
@@ -89,7 +76,10 @@ flock.events.on('client.slashCommand', function(event) {
         }
     });
 
-    var uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({ source: "the-hindu", apiKey: "13228478c1034a9db6cca38e772ea590" })
+    var uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({
+        source: "the-hindu",
+        apiKey: "13228478c1034a9db6cca38e772ea590"
+    })
     options = {};
     request.get(uri, options, function(err, res, body) {
         if (err) {
@@ -103,7 +93,7 @@ flock.events.on('client.slashCommand', function(event) {
 
         for (var i = 0; i < articles.length; i++) {
             //TODO: handle err
-            flock.callMethod('chat.sendMessage', tok, {
+            flock.callMethod('chat.sendMessage', "2f0b32a0-e0bf-4011-9dec-914ef29977e3", {
                     to: event.chat,
                     "text": "",
                     "attachments": [{
@@ -117,8 +107,6 @@ flock.events.on('client.slashCommand', function(event) {
                             }
                         },
                         "url": articles[i].url
-
-
                     }]
                 },
                 function(error, response) {
@@ -127,18 +115,10 @@ flock.events.on('client.slashCommand', function(event) {
                     }
                 });
         }
-
-
     });
-
-
-
-
     return {
         text: "Loading Articles For Today's Feed!"
     }
-
-
 });
 
 //this starts the listening on the particular port
@@ -148,6 +128,4 @@ app.listen(config.port, function() {
 
 process.on('SIGINT', process.exit);
 process.on('SIGTERM', process.exit);
-process.on('exit', function() {
-    fs.writeFileSync('./tokens.json', JSON.stringify(tokens));
-});
+process.on('exit', function() {});

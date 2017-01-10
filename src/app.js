@@ -87,63 +87,71 @@ flock.events.on('client.slashCommand', function(event) {
         case "news":
             var uri;
             var category = text[1];
+
             //Sub categories within news
             switch (category) {
                 case "general":
                     uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({
-                        source: "bbc-news",
+                        source: "cnn",
                         sortBy: "top",
-                        apiKey: "13228478c1034a9db6cca38e772ea590"
+                        apiKey: config.newsApiKey
                     })
 
                     break;
                 case "sports":
                     uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({
-                        source: "bbc-sport",
+                        source: "espn",
                         sortBy: "top",
-                        apiKey: "13228478c1034a9db6cca38e772ea590"
+                        apiKey: config.newsApiKey
                     })
                     break;
                 case "tech":
                     uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({
-                        source: "engadget",
+                        source: "techcrunch",
                         sortBy: "top",
-                        apiKey: "13228478c1034a9db6cca38e772ea590"
+                        apiKey: config.newsApiKey
                     })
                     break;
                 case "business":
                     uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({
-                        source: "cnbc",
+                        source: "business-insider",
                         sortBy: "top",
-                        apiKey: "13228478c1034a9db6cca38e772ea590"
+                        apiKey: config.newsApiKey
                     })
                     break;
                 case "entertainment":
                     uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({
                         source: "entertainment-weekly",
                         sortBy: "top",
-                        apiKey: "13228478c1034a9db6cca38e772ea590"
+                        apiKey: config.newsApiKey
                     })
                     break;
-                case "game":
+                case "games":
                     uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({
-                        source: "ign",
+                        source: "polygon",
                         sortBy: "top",
-                        apiKey: "13228478c1034a9db6cca38e772ea590"
+                        apiKey: config.newsApiKey
                     })
                     break;
                 case "science":
                     uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({
                         source: "new-scientist",
                         sortBy: "top",
-                        apiKey: "13228478c1034a9db6cca38e772ea590"
+                        apiKey: config.newsApiKey
                     })
                     break;
                 case "music":
                     uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({
                         source: "mtv-news",
                         sortBy: "top",
-                        apiKey: "13228478c1034a9db6cca38e772ea590"
+                        apiKey: config.newsApiKey
+                    })
+                    break;
+                case "cricket":
+                    uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({
+                        source: "espn-cric-info",
+                        sortBy: "top",
+                        apiKey: config.newsApiKey
                     })
                     break;
             }
@@ -160,20 +168,38 @@ flock.events.on('client.slashCommand', function(event) {
 
                 for (var i = 0; i < articles.length; i++) {
                     //TODO: handle err
+
                     flock.callMethod('chat.sendMessage', config.botToken, {
+
                             to: event.chat,
                             "text": "",
                             "attachments": [{
+
                                 "title": articles[i].title,
                                 "description": articles[i].description,
+                                "url": articles[i].url,
                                 "views": {
                                     "image": {
                                         "original": {
-                                            "src": articles[i].urlToImage
+                                            "src": articles[i].urlToImage,
+                                            "width": 250,
+                                            "height": 250
                                         }
-                                    }
+                                    },
+
                                 },
-                                "url": articles[i].url
+                                 "buttons": [{        
+                                    "name": "Read More",
+                                            "icon": ".read-more.png",
+                                            "action": {
+                                        "type": "openBrowser",
+                                        "url": articles[i].url,
+                                        "sendContext": false
+                                    },
+                                    "id": "readMoreBtn"
+                                }],
+
+                                "color": "#4c95d6"
                             }]
                         },
                         function(error, response) {

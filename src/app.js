@@ -91,9 +91,9 @@ flock.events.on('client.slashCommand', function(event) {
             switch (category) {
                 case "general":
                     uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({
-                        source: "bbc-news",
-                        sortBy: "top",
-                        apiKey: "13228478c1034a9db6cca38e772ea590"
+                        source: "the-times-of-india",
+                        sortBy: "latest",
+                        apiKey: config.NewsApiKey
                     })
 
                     break;
@@ -101,49 +101,49 @@ flock.events.on('client.slashCommand', function(event) {
                     uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({
                         source: "bbc-sport",
                         sortBy: "top",
-                        apiKey: "13228478c1034a9db6cca38e772ea590"
+                        apiKey: config.NewsApiKey
                     })
                     break;
                 case "tech":
                     uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({
                         source: "engadget",
                         sortBy: "top",
-                        apiKey: "13228478c1034a9db6cca38e772ea590"
+                        apiKey: config.NewsApiKey
                     })
                     break;
                 case "business":
                     uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({
                         source: "cnbc",
                         sortBy: "top",
-                        apiKey: "13228478c1034a9db6cca38e772ea590"
+                        apiKey: config.NewsApiKey
                     })
                     break;
                 case "entertainment":
                     uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({
                         source: "entertainment-weekly",
                         sortBy: "top",
-                        apiKey: "13228478c1034a9db6cca38e772ea590"
+                        apiKey: config.NewsApiKey
                     })
                     break;
                 case "game":
                     uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({
                         source: "ign",
                         sortBy: "top",
-                        apiKey: "13228478c1034a9db6cca38e772ea590"
+                        apiKey: config.NewsApiKey
                     })
                     break;
                 case "science":
                     uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({
                         source: "new-scientist",
                         sortBy: "top",
-                        apiKey: "13228478c1034a9db6cca38e772ea590"
+                        apiKey: config.NewsApiKey
                     })
                     break;
                 case "music":
                     uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({
                         source: "mtv-news",
                         sortBy: "top",
-                        apiKey: "13228478c1034a9db6cca38e772ea590"
+                        apiKey: config.NewsApiKey
                     })
                     break;
             }
@@ -188,8 +188,71 @@ flock.events.on('client.slashCommand', function(event) {
             }
             //End of news
             break;
-    }
+        case "weather":
+            var uri;
+            var current;
+            var locationsuri = 'http://dataservice.accuweather.com/locations/v1/cities/autocomplete' + '?' + qs.stringify({
+                apikey: config.WeatherApiKey,
+                q: text[1],
+                language: "en-us"
+            })
+            options = {};
+            var locationid;
+            var LocalizedName;
+            request.get(locationsuri, options, function(err, res, body) {
+                if (err) {
+                    return {
+                        text: "Could'nt fetch the news. Try Again Later."
+                    }
+                }
+                console.log("body " + body);
+                if (body.length != 2) {
+                    var body = JSON.parse(body);
+                    locationid = body[0].Key;
+                    LocalizedName = body[0].LocalizedName;
+                    console.log("LocalizedName" + LocalizedName);
 
+
+                    console.log("locationid " + body[0].Key);
+
+                    var weatherurl = 'http://dataservice.accuweather.com/currentconditions/v1/' + locationid + '?' + qs.stringify({
+                        apikey: config.WeatherApiKey,
+                        language: "en-us",
+                        details: "true"
+                    })
+                    options = {};
+                    request.get(weatherurl, options, function(err, res, weatherbody) {
+                        if (err) {
+                            return {
+                                text: "Could'nt fetch the news. Try Again Later."
+                            }
+                        }
+                        var weatherbody = JSON.parse(weatherbody);
+                        current = weatherbody[0];
+
+
+
+                        flock.callMethod('chat.sendMessage', config.botToken, {
+                                to: event.chat,
+                                "text": "",
+                                "attachments": [{
+                                    "title": LocalizedName,
+                                    "description": "Temperature: " + current.Temperature.Metric.Value + "\n" +
+                                        "Feels Like: " + current.RealFeelTemperature.Metric.Value + "\n" +
+                                        "Relative Humidity: " + current.RelativeHumidity + "\n" +
+                                        "Preciptation: " + current.PrecipitationSummary.Past24Hours.Metric.Value + " mm" + "\n" +
+                                        "Sky: " + current.WeatherText,
+                                }]
+                            },
+                            function(error, response) {
+                                if (!error) {
+                                    console.log(response);
+                                }
+                            });
+                    });
+                }
+            });
+    }
 });
 
 //this starts the listening on the particular port

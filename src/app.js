@@ -22,6 +22,7 @@ app.post('/events', flock.events.listener);
 
 var mongoConnection;
 var tokens;
+var collection;
 //connecting to mongodb
 MongoClient.connect(config.dburl, function(err, db) {
     mongoConnection = db;
@@ -32,10 +33,9 @@ MongoClient.connect(config.dburl, function(err, db) {
     }
 });
 
-
 //manipulating app.install event
 flock.events.on('app.install', function(event) {
-    var collection = mongoConnection.collection('users');
+    collection = mongoConnection.collection('users');
     collection.insert({
         "userId": event.userId,
         "token": event.token
@@ -48,7 +48,7 @@ flock.events.on('app.install', function(event) {
 //remove user id from db on uninstall
 flock.events.on('app.uninstall', function(event) {
 
-    var collection = mongoConnection.collection('users');
+    collection = mongoConnection.collection('users');
     collection.remove({
         "userId": event.userId
     }, function(err, doc) {
@@ -61,7 +61,7 @@ flock.events.on('app.uninstall', function(event) {
 //manipulating slash commands
 flock.events.on('client.slashCommand', function(event) {
 
-    var collection = mongoConnection.collection('users');
+    collection = mongoConnection.collection('users');
 
     //splitting sub commands
     var text = event.text.split(" ");
@@ -85,12 +85,69 @@ flock.events.on('client.slashCommand', function(event) {
     switch (text[0]) {
         //NEWS
         case "news":
+            var uri;
             var category = text[1];
-            var uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({
-                source: "espn-cric-info",
-                sortBy: "latest",
-                apiKey: "13228478c1034a9db6cca38e772ea590"
-            })
+            //Sub categories within news
+            switch (category) {
+                case "general":
+                    uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({
+                        source: "bbc-news",
+                        sortBy: "top",
+                        apiKey: "13228478c1034a9db6cca38e772ea590"
+                    })
+
+                    break;
+                case "sports":
+                    uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({
+                        source: "bbc-sport",
+                        sortBy: "top",
+                        apiKey: "13228478c1034a9db6cca38e772ea590"
+                    })
+                    break;
+                case "tech":
+                    uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({
+                        source: "engadget",
+                        sortBy: "top",
+                        apiKey: "13228478c1034a9db6cca38e772ea590"
+                    })
+                    break;
+                case "business":
+                    uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({
+                        source: "cnbc",
+                        sortBy: "top",
+                        apiKey: "13228478c1034a9db6cca38e772ea590"
+                    })
+                    break;
+                case "entertainment":
+                    uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({
+                        source: "entertainment-weekly",
+                        sortBy: "top",
+                        apiKey: "13228478c1034a9db6cca38e772ea590"
+                    })
+                    break;
+                case "game":
+                    uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({
+                        source: "ign",
+                        sortBy: "top",
+                        apiKey: "13228478c1034a9db6cca38e772ea590"
+                    })
+                    break;
+                case "science":
+                    uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({
+                        source: "new-scientist",
+                        sortBy: "top",
+                        apiKey: "13228478c1034a9db6cca38e772ea590"
+                    })
+                    break;
+                case "music":
+                    uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({
+                        source: "mtv-news",
+                        sortBy: "top",
+                        apiKey: "13228478c1034a9db6cca38e772ea590"
+                    })
+                    break;
+            }
+            console.log(uri);
             options = {};
             request.get(uri, options, function(err, res, body) {
                 if (err) {
@@ -98,11 +155,8 @@ flock.events.on('client.slashCommand', function(event) {
                         text: "Could'nt fetch the news. Try Again Later."
                     }
                 }
-
                 var body = JSON.parse(body);
                 var articles = body.articles;
-
-
 
                 for (var i = 0; i < articles.length; i++) {
                     //TODO: handle err
@@ -135,6 +189,7 @@ flock.events.on('client.slashCommand', function(event) {
             //End of news
             break;
     }
+
 });
 
 //this starts the listening on the particular port

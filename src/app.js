@@ -6,6 +6,7 @@ var bodyParser = require("body-parser");
 var mongodb = require('mongodb');
 var request = require('request');
 var app = express();
+var fs = require('fs');
 var qs = require('querystring');
 var MongoClient = mongodb.MongoClient;
 
@@ -31,6 +32,15 @@ MongoClient.connect(config.dburl, function(err, db) {
     } else {
         console.log('Connection established to', config.dburl);
     }
+    collection = mongoConnection.collection('stock');
+    fs.readFile('stock.json', 'utf8', function (err, data) {
+        if (err) throw err;
+        var json = JSON.parse(data);
+        collection.insert(json, function(err, doc) {
+            if(err) throw err;
+        });
+
+    });
 });
 
 //manipulating app.install event
@@ -85,67 +95,67 @@ flock.events.on('client.slashCommand', function(event) {
     switch (text[0]) {
         //NEWS
         case "news":
-            var uri;
-            var category = text[1];
+        var uri;
+        var category = text[1];
             //Sub categories within news
             switch (category) {
                 case "general":
-                    uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({
-                        source: "the-times-of-india",
-                        sortBy: "latest",
-                        apiKey: config.NewsApiKey
-                    })
+                uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({
+                    source: "the-times-of-india",
+                    sortBy: "latest",
+                    apiKey: config.NewsApiKey
+                })
 
-                    break;
+                break;
                 case "sports":
-                    uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({
-                        source: "bbc-sport",
-                        sortBy: "top",
-                        apiKey: config.NewsApiKey
-                    })
-                    break;
+                uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({
+                    source: "bbc-sport",
+                    sortBy: "top",
+                    apiKey: config.NewsApiKey
+                })
+                break;
                 case "tech":
-                    uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({
-                        source: "engadget",
-                        sortBy: "top",
-                        apiKey: config.NewsApiKey
-                    })
-                    break;
+                uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({
+                    source: "engadget",
+                    sortBy: "top",
+                    apiKey: config.NewsApiKey
+                })
+                break;
                 case "business":
-                    uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({
-                        source: "cnbc",
-                        sortBy: "top",
-                        apiKey: config.NewsApiKey
-                    })
-                    break;
+                uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({
+                    source: "cnbc",
+                    sortBy: "top",
+                    apiKey: config.NewsApiKey
+                })
+                break;
                 case "entertainment":
-                    uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({
-                        source: "entertainment-weekly",
-                        sortBy: "top",
-                        apiKey: config.NewsApiKey
-                    })
-                    break;
+                uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({
+                    source: "entertainment-weekly",
+                    sortBy: "top",
+                    apiKey: config.NewsApiKey
+                })
+                break;
                 case "game":
-                    uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({
-                        source: "ign",
-                        sortBy: "top",
-                        apiKey: config.NewsApiKey
-                    })
-                    break;
+                uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({
+                    source: "ign",
+                    sortBy: "top",
+                    apiKey: config.NewsApiKey
+                })
+                break;
                 case "science":
-                    uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({
-                        source: "new-scientist",
-                        sortBy: "top",
-                        apiKey: config.NewsApiKey
-                    })
-                    break;
+                uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({
+                    source: "new-scientist",
+                    sortBy: "top",
+                    apiKey: config.NewsApiKey
+                })
+                break;
                 case "music":
-                    uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({
-                        source: "mtv-news",
-                        sortBy: "top",
-                        apiKey: config.NewsApiKey
-                    })
-                    break;
+                uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({
+                    source: "mtv-news",
+                    sortBy: "top",
+                    apiKey: config.NewsApiKey
+                })
+                break;
             }
             console.log(uri);
             options = {};
@@ -161,26 +171,26 @@ flock.events.on('client.slashCommand', function(event) {
                 for (var i = 0; i < articles.length; i++) {
                     //TODO: handle err
                     flock.callMethod('chat.sendMessage', config.botToken, {
-                            to: event.chat,
-                            "text": "",
-                            "attachments": [{
-                                "title": articles[i].title,
-                                "description": articles[i].description,
-                                "views": {
-                                    "image": {
-                                        "original": {
-                                            "src": articles[i].urlToImage
-                                        }
+                        to: event.chat,
+                        "text": "",
+                        "attachments": [{
+                            "title": articles[i].title,
+                            "description": articles[i].description,
+                            "views": {
+                                "image": {
+                                    "original": {
+                                        "src": articles[i].urlToImage
                                     }
-                                },
-                                "url": articles[i].url
-                            }]
-                        },
-                        function(error, response) {
-                            if (!error) {
-                                console.log(response);
-                            }
-                        });
+                                }
+                            },
+                            "url": articles[i].url
+                        }]
+                    },
+                    function(error, response) {
+                        if (!error) {
+                            console.log(response);
+                        }
+                    });
                 }
             });
             return {
@@ -193,18 +203,18 @@ flock.events.on('client.slashCommand', function(event) {
 
         //Start of weather
         case "weather":
-            var uri;
-            var current;
-            var locationsuri = 'http://dataservice.accuweather.com/locations/v1/cities/autocomplete' + '?' + qs.stringify({
-                apikey: config.WeatherApiKey,
-                q: text[1],
-                language: "en-us"
-            })
-            options = {};
-            var locationid;
-            var LocalizedName;
-            var State;
-            var Country;
+        var uri;
+        var current;
+        var locationsuri = 'http://dataservice.accuweather.com/locations/v1/cities/autocomplete' + '?' + qs.stringify({
+            apikey: config.WeatherApiKey,
+            q: text[1],
+            language: "en-us"
+        })
+        options = {};
+        var locationid;
+        var LocalizedName;
+        var State;
+        var Country;
 
             // GET LOCATION ID
             request.get(locationsuri, options, function(err, res, body) {
@@ -241,41 +251,88 @@ flock.events.on('client.slashCommand', function(event) {
                         current = weatherbody[0];
                         iconid = current.WeatherIcon;
                         if(iconid<10)
-                        iconurl = "http://developer.accuweather.com/sites/default/files/0" + iconid + "-s.png";
+                            iconurl = "http://developer.accuweather.com/sites/default/files/0" + iconid + "-s.png";
                         else
-                        iconurl = "http://developer.accuweather.com/sites/default/files/" + iconid + "-s.png";
+                            iconurl = "http://developer.accuweather.com/sites/default/files/" + iconid + "-s.png";
                         flock.callMethod('chat.sendMessage', config.botToken, {
-                                to: event.chat,
-                                "text": "",
-                                "attachments": [{
-                                    "title": LocalizedName + ", " + Country,
-                                    "description": "Temperature: " + current.Temperature.Metric.Value  + '\u00B0' +  "C\n" +
-                                        "Feels Like: " + current.RealFeelTemperature.Metric.Value + '\u00B0' +  "C\n" +
-                                        "Relative Humidity: " + current.RelativeHumidity + "\n" +
-                                        "Wind: " + current.Wind.Speed.Metric.Value + " km/h " + current.Wind.Direction.English + "\n" +
-                                        "Precipitation: " + current.PrecipitationSummary.Past24Hours.Metric.Value + " mm" + "\n" +
-                                        "Current Condition: " + current.WeatherText,
-                                      "views": {
-                                        "image": {
-                                            "original": {
-                                                "src": iconurl,
-                                                "width": 150,
-                                                "height": 150
-                                                }
-                                            },
-                                          }
-                                }]
-                            },
-                            function(error, response) {
-                                if (!error) {
-                                    console.log(response);
+                            to: event.chat,
+                            "text": "",
+                            "attachments": [{
+                                "title": LocalizedName + ", " + Country,
+                                "description": "Temperature: " + current.Temperature.Metric.Value  + '\u00B0' +  "C\n" +
+                                "Feels Like: " + current.RealFeelTemperature.Metric.Value + '\u00B0' +  "C\n" +
+                                "Relative Humidity: " + current.RelativeHumidity + "\n" +
+                                "Wind: " + current.Wind.Speed.Metric.Value + " km/h " + current.Wind.Direction.English + "\n" +
+                                "Precipitation: " + current.PrecipitationSummary.Past24Hours.Metric.Value + " mm" + "\n" +
+                                "Current Condition: " + current.WeatherText,
+                                "views": {
+                                    "image": {
+                                        "original": {
+                                            "src": iconurl,
+                                            "width": 150,
+                                            "height": 150
+                                        }
+                                    },
                                 }
-                            });
+                            }]
+                        },
+                        function(error, response) {
+                            if (!error) {
+                                console.log(response);
+                            }
+                        });
                     });
                 }
             });
-    }
-});
+            break;
+            // Start of stock
+            case "stock":
+            var symbol = text[1];
+            var stockName;
+            collection = mongoConnection.collection('stock');
+            collection.findOne({
+                "SYMBOL": symbol.toUpperCase()
+            }, function(err, document) {
+                stockName = document.NAME;
+            });
+            var uri = "http://finance.google.com/finance/info?client=ig&q=NSE:" + symbol;
+            options = {};
+            request.get(uri, options, function(err, res, body) {
+                if (err) {
+                    return {
+                        text: "Could'nt fetch the news. Try Again Later."
+                    }
+                }
+                body = body.replace('// ', '');
+                var body = JSON.parse(body);
+                console.log("STOCK:" + body);
+                var stock = body[0].t;
+                var price = body[0].l;
+                var change = body[0].c;
+                var changepercent = body[0].cp;
+
+                flock.callMethod('chat.sendMessage', config.botToken, {
+                  to: event.chat,
+                  "text": "",
+                  "attachments": [{
+                      "title": stockName,
+                      "description": "Symbol: " + stock + "\n" +
+                      "price: " + price + "\n" +                          
+                      "Change: " + change + "(" + changepercent + " percent)"
+
+                  }]
+              },
+              function(error, response) {
+                  if (!error) {
+                      console.log(response);
+                  }
+              });
+            });
+            break;
+            //End of stock
+        }
+
+    });
 
 //this starts the listening on the particular port
 app.listen(config.port, function() {

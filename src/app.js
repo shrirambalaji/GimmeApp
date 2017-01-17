@@ -7,8 +7,14 @@ var mongodb = require('mongodb');
 var request = require('request');
 var app = express();
 var qs = require('querystring');
+var waterfall = require('async-waterfall');
 var MongoClient = mongodb.MongoClient;
-
+var stocks = require('./stocks');
+var news = require('./news');
+var weather = require('./weather');
+var cricscores = require('./cricscores');
+var forex = require('./forex');
+var dictionary = require('./dictionary');
 //Setting app id and details from config.js
 flock.setAppId(config.appId);
 flock.setAppSecret(config.appSecret);
@@ -82,145 +88,61 @@ flock.events.on('client.slashCommand', function(event) {
     });
 
     //sub categories
-    switch (text[0]) {
+    var service = text[0];
+    switch (service) {
         //NEWS
         case "news":
-            var uri;
             var category = text[1];
-
-            //Sub categories within news
-            switch (category) {
-                case "general":
-                    uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({
-                        source: "cnn",
-                        sortBy: "top",
-                        apiKey: config.newsApiKey
-                    })
-
-                    break;
-                case "sports":
-                    uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({
-                        source: "espn",
-                        sortBy: "top",
-                        apiKey: config.newsApiKey
-                    })
-                    break;
-                case "tech":
-                    uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({
-                        source: "techcrunch",
-                        sortBy: "top",
-                        apiKey: config.newsApiKey
-                    })
-                    break;
-                case "business":
-                    uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({
-                        source: "business-insider",
-                        sortBy: "top",
-                        apiKey: config.newsApiKey
-                    })
-                    break;
-                case "entertainment":
-                    uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({
-                        source: "entertainment-weekly",
-                        sortBy: "top",
-                        apiKey: config.newsApiKey
-                    })
-                    break;
-                case "games":
-                    uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({
-                        source: "polygon",
-                        sortBy: "top",
-                        apiKey: config.newsApiKey
-                    })
-                    break;
-                case "science":
-                    uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({
-                        source: "new-scientist",
-                        sortBy: "top",
-                        apiKey: config.newsApiKey
-                    })
-                    break;
-                case "music":
-                    uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({
-                        source: "mtv-news",
-                        sortBy: "top",
-                        apiKey: config.newsApiKey
-                    })
-                    break;
-                case "cricket":
-                    uri = 'https://newsapi.org/v1/articles' + '?' + qs.stringify({
-                        source: "espn-cric-info",
-                        sortBy: "top",
-                        apiKey: config.newsApiKey
-                    })
-                    break;
-            }
-            console.log(uri);
-            options = {};
-            request.get(uri, options, function(err, res, body) {
-                if (err) {
-                    return {
-                        text: "Could'nt fetch the news. Try Again Later."
-                    }
-                }
-                var body = JSON.parse(body);
-                var articles = body.articles;
-
-                for (var i = 0; i < articles.length; i++) {
-                    //TODO: handle err
-
-                    flock.callMethod('chat.sendMessage', config.botToken, {
-
-                            to: event.chat,
-                            "text": "",
-                            "attachments": [{
-
-                                "title": articles[i].title,
-                                "description": articles[i].description,
-                                "url": articles[i].url,
-                                "views": {
-                                    "image": {
-                                        "original": {
-                                            "src": articles[i].urlToImage,
-                                            "width": 250,
-                                            "height": 250
-                                        }
-                                    },
-
-                                },
-                                 "buttons": [{        
-                                    "name": "Read More",
-                                            "icon": ".read-more.png",
-                                            "action": {
-                                        "type": "openBrowser",
-                                        "url": articles[i].url,
-                                        "sendContext": false
-                                    },
-                                    "id": "readMoreBtn"
-                                }],
-
-                                "color": "#4c95d6"
-                            }]
-                        },
-                        function(error, response) {
-                            if (!error) {
-                                console.log(response);
-                            }
-                        });
-                }
-            });
-            return {
-                text: "Loading Articles For Today's Feed!"
-            }
+            if (category == undefined)
+                category = "general";
+            news.getNews(category, event);
             //End of news
             break;
+
+            //Start of weather
+        case "weather":
+            var uri;
+            var current;
+            var place = text[1];
+            weather.getWeather(place, event);
+            break;
+
+            // Start of stock
+        case "stocks":
+            var org = text[1];
+            stocks.getStocks(org, event);
+            break;
+            //End of stock
+
+            //Start of Cricket Scores
+        case "cricscores":
+            cricscores.getScores(event);
+            break;
+            //End of Cricket Scores
+
+            //Start of Forex Rates
+        case "forex":
+            forex.getRates(event);
+            break;
+
+        case "meaning":
+            var word = text[1];
+            dictionary.getMeaning(word, event);
+            break;
+
+       default:
+       		     
+
+
     }
 
 });
 
+
+
 //this starts the listening on the particular port
 app.listen(config.port, function() {
-    console.log('DailyFeed listening on ' + config.port);
+    console.log('GimmeApp listening on ' + config.port);
 });
 
 process.on('SIGINT', process.exit);

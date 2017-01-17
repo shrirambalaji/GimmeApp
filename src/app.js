@@ -131,9 +131,6 @@ flock.events.on('client.slashCommand', function(event) {
             break;
 
        default:
-                 
-
-
     }
 
 });

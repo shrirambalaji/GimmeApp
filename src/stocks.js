@@ -40,16 +40,17 @@ exports.getStocks = function(org, receiver) {
                 text: "Could'nt fetch Stock Details. Please Try Again Later."
             }
         }
+        console.log("Fetching Stock Quotes");
         body = body.replace('// ', '');
         var body = JSON.parse(body);
-        console.log("STOCK:" + body);
         var stock = body[0].t;
         var price = body[0].l;
         var change = body[0].c;
         var changepercent = body[0].cp;
+        console.log("Sending message");
         flock.callMethod('chat.sendMessage', config.botToken, {
                 to: receiver,
-                "text": "Powered By Google Finance",
+                "text": "",
                 "attachments": [{
                     "title": stockName,
                     "color" : "#FFD700",
@@ -61,8 +62,10 @@ exports.getStocks = function(org, receiver) {
             },
 
             function(error, response) {
-                if (!error) {
-                    console.log(response);
+                if (error) {
+                    console.log(error);
+                } else{
+                    console.log("message sent");
                 }
             });
     });

@@ -21,6 +21,7 @@ flock.setAppId(config.appId);
 flock.setAppSecret(config.appSecret);
 
 app.use(bodyParser.json());
+
 //Verify user tokens
 app.use(flock.events.tokenVerifier);
 
@@ -49,6 +50,7 @@ flock.events.on('app.install', function(event) {
     }, function(err, doc) {
         if (err) throw err;
     });
+    console.log(event.userId + " installed Gimme");
 
 });
 
@@ -60,33 +62,26 @@ flock.events.on('app.uninstall', function(event) {
         "userId": event.userId
     }, function(err, doc) {
         if (err) throw err;
-        console.log(event);
     });
+        console.log(event.userId + " uninstalled Gimme");
+
 
 });
 
 //manipulating slash commands
 flock.events.on('client.slashCommand', function(event) {
-
     collection = mongoConnection.collection('users');
 
     //splitting sub commands
     var text = event.text.split(" ");
 
-    console.log("userid: " + event.text);
     collection.findOne({
         "userId": event.userId
     }, function(err, document) {
         tokens = document.token;
 
     });
-    flock.groups.list(tokens, null, function(error, response) {
-        if (error) {
-            console.log('error: ', error);
-        } else {
-            console.log(response);
-        }
-    });
+
 
 
 var first = event.chat[0];
@@ -96,14 +91,16 @@ if(first === "g")
 		receiver = event.userId;
     //sub categories
     var service = text[0];
+    console.log(event.userName + " used Slash command " + service);
+
     switch (service) {
         //NEWS
         case "news":
             var category = text[1];
             if (category == undefined)
                 category = "general";
-            news.getNews(category,receiver);
-
+                console.log(event.userName + " selected category " + category);
+                news.getNews(category,receiver);
             //End of news
             break;
 
@@ -112,12 +109,14 @@ if(first === "g")
             var uri;
             var current;
             var place = text[1];
+            console.log(event.userName + " selected city " + place);
             weather.getWeather(place,receiver);
             break;
 
             // Start of stock
         case "stocks":
             var org = text[1];
+            console.log(event.userName + " selected Stock Symbol " + org);
             stocks.getStocks(org,receiver);
             break;
             //End of stock
@@ -135,29 +134,28 @@ if(first === "g")
 
         case "meaning":
             var word = text[1];
+            console.log(event.userName + " selected word " + word);
             dictionary.getMeaning(word,receiver);
             break;
 
-
+        case "help":            
         default:
             flock.callMethod('chat.sendMessage', config.botToken, {
                 to: event.userId,
                 "text": "",
                 "attachments": [{
-                    "title": "Usage",
-                    "description": "\/gimme [news] category\n\/gimme [weather] city\n\/gimme [stocks] stock\n\/gimme [cricscores]\n\/gimme [forex]\n\/gimme [meaning] word\nFor more info: https:\/\/gimme-app.github.io/showcase.html"
+                    "title": "Help",
+                    "description": "\/gimme [news] category\n\/gimme [weather] city\n\/gimme [stocks] stock\n\/gimme [cricscores]\n\/gimme [forex]\n\/gimme [meaning] word\nto know more visit: https:\/\/gimme-app.github.io/showcase.html"
                 }]
             },
 
             function(error, response) {
-                if (!error) {
-                    console.log(response);
+                if (error) {
+                    console.log(error);
                 }
             });
 
-       		     
-
-
+       		   
     }
 
 });

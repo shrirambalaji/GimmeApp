@@ -27,15 +27,14 @@ exports.getWeather = function(place,receiver){
                         text: "Could'nt fetch the news. Try Again Later."
                     }
                 }
-                console.log("body " + body.length);
+                console.log("Fetching Location ID");
                 if (body.length > 2) {
                     var body = JSON.parse(body);
                     locationid = body[0].Key;
                     LocalizedName = body[0].LocalizedName;
                     State = body[0].AdministrativeArea.LocalizedName;
                     Country = body[0].Country.LocalizedName;
-                    console.log("LocalizedName" + LocalizedName);
-                    console.log("locationid " + body[0].Key);
+
 
                     var weatherurl = 'http://dataservice.accuweather.com/currentconditions/v1/' + locationid + '?' + qs.stringify({
                         apikey: config.WeatherApiKey,
@@ -51,6 +50,7 @@ exports.getWeather = function(place,receiver){
                                 text: "Could'nt fetch Weather. Please Try Again Later."
                             }
                         }
+                        console.log("Fetching Current Conditions");
                         var weatherbody = JSON.parse(weatherbody);
                         current = weatherbody[0];
                         iconid = current.WeatherIcon;
@@ -67,6 +67,7 @@ exports.getWeather = function(place,receiver){
                             iconurl = "http://developer.accuweather.com/sites/default/files/0" + iconid + "-s.png";
                         else
                             iconurl = "http://developer.accuweather.com/sites/default/files/" + iconid + "-s.png";
+                        console.log("Sending message");
                         flock.callMethod('chat.sendMessage', config.botToken, {
                                 to: receiver,
                                 "text": "",
@@ -91,8 +92,10 @@ exports.getWeather = function(place,receiver){
                                 }]
                             },
                             function(error, response) {
-                                if (!error) {
-                                    console.log(response);
+                                if (error) {
+                                    console.log(error);
+                                }else{
+                                   console.log("Message sent");
                                 }
                             });
                     });

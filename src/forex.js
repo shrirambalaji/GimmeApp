@@ -16,10 +16,9 @@
                         text: "Could'nt fetch Today's Foreign Exchange Rates. Please Try Again Later."
                     }
                 }
+                console.log("Fetching forex information");
                 var body = JSON.parse(body);
                 var command = "/gimme forex";
-                console.log("forex" + body);
-                console.log(uri);
                 var usd = body.rates.USD;
                 var aud = body.rates.AUD;
                 var sgd = body.rates.SGD;
@@ -35,10 +34,7 @@
                 var huf = body.rates.HUF;
                 var jpy = body.rates.JPY;
                 var nzd = body.rates.NZD;
-                //  console.log(bas);
-                //    var
-
-                //TODO: handle err
+                console.log("Sending message");
                 flock.callMethod('chat.sendMessage', config.botToken, {
                         to: receiver,
                         "text": "",
@@ -60,16 +56,13 @@
                                 "Hungarian Forint: " + huf + "\n" +
                                 "Japanese Yen: " + jpy + "\n" +
                                 "New Zealand Dollar: " + nzd + "\n"
-
-
-
-
-
                         }]
                     },
                     function(error, response) {
-                        if (!error) {
-                            console.log(response);
+                        if (error) {
+                            console.log(error);
+                        }else{
+                            console.log("message sent");
                         }
                     });
 

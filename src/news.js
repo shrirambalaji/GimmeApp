@@ -84,7 +84,6 @@
                color = "#0094ff";
                break;
        }
-       console.log(uri);
        var options = {};
        request.get(uri, options, function(err, res, body) {
            if (err) {
@@ -92,10 +91,26 @@
                    text: "Could'nt fetch the news. Try Again Later."
                }
            }
+           console.log("Fetching news");
            var body = JSON.parse(body);
            var articles = body.articles;
+           var heading = category.charAt(0).toUpperCase() + category.slice(1) + " News";
+
+           // flock.callMethod('chat.sendMessage', config.botToken, {
+           //      to : receiver,
+           //      "text" : heading
+           //     },
+           //     function(error, response) {
+           //         if (error) {
+           //             console.log(error);
+           //         } else {
+           //             console.log("message sent");
+           //         }
+           //     });
+
+
            for (var i = 0; i < articles.length; i++) {
-               //TODO: handle err
+               console.log("Sending message");
                flock.callMethod('chat.sendMessage', config.botToken, {
                        to: receiver,
                        "text": "",
@@ -128,8 +143,10 @@
                        }]
                    },
                    function(error, response) {
-                       if (!error) {
-                           console.log(response);
+                       if (error) {
+                           console.log(error);
+                       } else {
+                           console.log("message sent");
                        }
                    });
            }

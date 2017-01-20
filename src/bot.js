@@ -16,10 +16,8 @@ var cricscores = require('./cricscores');
 var forex = require('./forex');
 var dictionary = require('./dictionary');
 
-
 exports.getReply = function(event) {
     var text = event.message.text.split(" ");
-
 
     //sub categories
     var service = text[1];

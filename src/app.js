@@ -15,6 +15,7 @@ var weather = require('./weather');
 var cricscores = require('./cricscores');
 var forex = require('./forex');
 var dictionary = require('./dictionary');
+var bot = require('./bot');
 //Setting app id and details from config.js
 flock.setAppId(config.appId);
 flock.setAppSecret(config.appSecret);
@@ -87,6 +88,12 @@ flock.events.on('client.slashCommand', function(event) {
         }
     });
 
+
+var first = event.chat[0];
+if(first === "g")
+	 receiver = event.chat;
+	else
+		receiver = event.userId;
     //sub categories
     var service = text[0];
     switch (service) {
@@ -95,7 +102,8 @@ flock.events.on('client.slashCommand', function(event) {
             var category = text[1];
             if (category == undefined)
                 category = "general";
-            news.getNews(category, event);
+            news.getNews(category,receiver);
+
             //End of news
             break;
 
@@ -104,33 +112,49 @@ flock.events.on('client.slashCommand', function(event) {
             var uri;
             var current;
             var place = text[1];
-            weather.getWeather(place, event);
+            weather.getWeather(place,receiver);
             break;
 
             // Start of stock
         case "stocks":
             var org = text[1];
-            stocks.getStocks(org, event);
+            stocks.getStocks(org,receiver);
             break;
             //End of stock
 
             //Start of Cricket Scores
         case "cricscores":
-            cricscores.getScores(event);
+            cricscores.getScores(receiver);
             break;
             //End of Cricket Scores
 
             //Start of Forex Rates
         case "forex":
-            forex.getRates(event);
+            forex.getRates(receiver);
             break;
 
         case "meaning":
             var word = text[1];
-            dictionary.getMeaning(word, event);
+            dictionary.getMeaning(word,receiver);
             break;
 
-       default:
+
+        default:
+            flock.callMethod('chat.sendMessage', config.botToken, {
+                to: event.userId,
+                "text": "",
+                "attachments": [{
+                    "title": "Usage",
+                    "description": "\/gimme [news] category\n\/gimme [weather] city\n\/gimme [stocks] stock\n\/gimme [cricscores]\n\/gimme [forex]\n\/gimme [meaning] word\nFor more info: https:\/\/gimme-app.github.io/showcase.html"
+                }]
+            },
+
+            function(error, response) {
+                if (!error) {
+                    console.log(response);
+                }
+            });
+
        		     
 
 
@@ -138,11 +162,17 @@ flock.events.on('client.slashCommand', function(event) {
 
 });
 
+flock.events.on('chat.receiveMessage',function(event){
+bot.getReply(event);
+});
+
+
 
 
 //this starts the listening on the particular port
-app.listen(config.port, function() {
-    console.log('GimmeApp listening on ' + config.port);
+app.listen(process.env.PORT, function() {
+    console.log('GimmeApp listening on ' + process.env.PORT);
 });
+
 
 process.on('SIGINT', process.exit);

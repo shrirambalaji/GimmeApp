@@ -2,8 +2,7 @@ var cricapi = require('node-cricapi');
 var waterfall = require('async-waterfall');
 var flock = require('flockos');
 var config = require('./config');
-exports.getScores = function(event){
-	
+exports.getScores = function(receiver){
 	
 	 var matchs;
             var scores;
@@ -17,18 +16,17 @@ exports.getScores = function(event){
                                 var currentMatch = JSON.parse(_matchData, null, 2);
                                 // console.log("Got scores for unique_id ", match.unique_id, ": bundle of", _matchData.length, " bytes");
                                 var matchStarted = currentMatch.matchStarted;
-
                                 var teams = currentMatch.team - 1 + "VS" + currentMatch.team - 2;
                                 if (matchStarted) {
                                     scores = match.title;
                                     scores.replace("&amp;", "&");
                                     flock.callMethod('chat.sendMessage', config.botToken, {
-                                        to: event.chat,
+                                        to: receiver,
                                         "text": "",
                                         "attachments": [{
                                             "title": "",
                                             "description": scores,
-                                            "color": "#4c95d6"
+                                            "color": "#c42f2f"
                                         }]
                                     }, function(error, response) {
                                         if (!error) {

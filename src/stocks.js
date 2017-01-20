@@ -12,6 +12,7 @@ var MongoClient = mongodb.MongoClient;
 var mongoConnection;
 var tokens;
 var collection;
+
 //connecting to mongodb
 MongoClient.connect(config.dburl, function(err, db) {
     mongoConnection = db;
@@ -22,10 +23,10 @@ MongoClient.connect(config.dburl, function(err, db) {
     }
 });
 
-exports.getStocks = function(org, event) {
+exports.getStocks = function(org, receiver) {
     var symbol = org;
     var stockName;
-    collection = mongoConnection.collection('stock');
+    collection = mongoConnection.collection('stocks');
     collection.findOne({
         "SYMBOL": symbol.toUpperCase()
     }, function(err, document) {
@@ -47,10 +48,11 @@ exports.getStocks = function(org, event) {
         var change = body[0].c;
         var changepercent = body[0].cp;
         flock.callMethod('chat.sendMessage', config.botToken, {
-                to: event.chat,
+                to: receiver,
                 "text": "Powered By Google Finance",
                 "attachments": [{
                     "title": stockName,
+                    "color" : "#FFD700",
                     "description": "Symbol: " + stock + "\n" +
                         "price: " + price + "\n" +
                         "Change: " + change + " ( " + changepercent + " % )"

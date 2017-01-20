@@ -7,7 +7,7 @@
    var request = require('request');
    var qs = require('querystring');
 
-      exports.getRates = function(event){
+      exports.getRates = function(receiver){
       var uri = "http://api.fixer.io/latest?base=INR"
             var options = {};
             request.get(uri, options, function(err, res, body) {
@@ -40,10 +40,11 @@
 
                 //TODO: handle err
                 flock.callMethod('chat.sendMessage', config.botToken, {
-                        to: event.chat,
+                        to: receiver,
                         "text": "",
                         "attachments": [{
                             "title": "Forex INR",
+                            "color" : "#99cc66",
                             "description": "US Dollar: " + usd + "\n" +
                                 "Australian Dollar: " + aud + "\n" +
                                 "Singapore Dollar: " + sgd + "\n" +

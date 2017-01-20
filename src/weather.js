@@ -6,7 +6,8 @@
    var request = require('request');
    var qs = require('querystring');
 
-exports.getWeather = function(place,event){
+
+exports.getWeather = function(place,receiver){
 	var locationsuri = 'http://dataservice.accuweather.com/locations/v1/cities/autocomplete' + '?' + qs.stringify({
                 apikey: config.WeatherApiKey,
                 q: place,
@@ -17,6 +18,7 @@ exports.getWeather = function(place,event){
             var LocalizedName;
             var State;
             var Country;
+            var color;
 
             // GET LOCATION ID
             request.get(locationsuri, options, function(err, res, body) {
@@ -25,8 +27,8 @@ exports.getWeather = function(place,event){
                         text: "Could'nt fetch the news. Try Again Later."
                     }
                 }
-                console.log("body " + body);
-                if (body.length > 0) {
+                console.log("body " + body.length);
+                if (body.length > 2) {
                     var body = JSON.parse(body);
                     locationid = body[0].Key;
                     LocalizedName = body[0].LocalizedName;
@@ -52,18 +54,28 @@ exports.getWeather = function(place,event){
                         var weatherbody = JSON.parse(weatherbody);
                         current = weatherbody[0];
                         iconid = current.WeatherIcon;
+                        if(iconid <= 6 || iconid == 20 || iconid == 21 || iconid == 23 || (iconid >=13 && iconid <= 17)){
+                            color = "#f1c40f";
+                        } else if ((iconid >6 && iconid <= 12) || iconid == 19 || iconid == 18 || iconid == 22 || iconid == 26){
+                            color = "#7f8c8d";
+                        } else if(iconid == 33 || iconid == 34){
+                            color = "#B6B6B4"
+                        } else if(iconid >31 && iconid <= 44){
+                            color ="#95a5a6";
+                        }
                         if (iconid < 10)
                             iconurl = "http://developer.accuweather.com/sites/default/files/0" + iconid + "-s.png";
                         else
                             iconurl = "http://developer.accuweather.com/sites/default/files/" + iconid + "-s.png";
                         flock.callMethod('chat.sendMessage', config.botToken, {
-                                to: event.chat,
+                                to: receiver,
                                 "text": "",
                                 "attachments": [{
                                     "title": LocalizedName + ", " + Country,
+                                    "color": color,
                                     "description": "Temperature: " + current.Temperature.Metric.Value + '\u00B0' + "C\n" +
                                         "Feels Like: " + current.RealFeelTemperature.Metric.Value + '\u00B0' + "C\n" +
-                                        "Relative Humidity: " + current.RelativeHumidity + "\n" +
+                                        "Relative Humidity: " + current.RelativeHumidity + "%\n" +
                                         "Wind: " + current.Wind.Speed.Metric.Value + " km/h " + current.Wind.Direction.English + "\n" +
                                         "Precipitation: " + current.PrecipitationSummary.Past24Hours.Metric.Value + " mm" + "\n" +
                                         "Current Condition: " + current.WeatherText,

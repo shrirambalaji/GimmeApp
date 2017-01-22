@@ -1,0 +1,24 @@
+{
+  "name": "gimme",
+  "version": "1.0.0",
+  "license": "ISC",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js"
+  },
+  "dependencies": {
+    "async": "^2.1.4",
+    "async-waterfall": "^0.1.5",
+    "body-parser": "^1.15.2",
+    "express": "^4.9.8",
+    "flockos": "0.0.4",
+    "mongodb": "^2.2.21",
+    "node-cricapi": "^1.2.5",
+    "querystring": "^0.2.0",
+    "request": "^2.79.0"
+  },
+  "engines": {
+    "node": "5.4.1",
+    "npm": "3.3.12"
+  }
+}

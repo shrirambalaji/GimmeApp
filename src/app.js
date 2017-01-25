@@ -1,3 +1,4 @@
+'use strict';
 var express = require('express');
 var flock = require('flockos');
 var http = require('http');
@@ -52,6 +53,21 @@ flock.events.on('app.install', function(event) {
     });
     console.log(event.userId + " installed Gimme");
 
+    flock.callMethod('chat.sendMessage', config.botToken, {
+            to: event.userId,
+            "text": "",
+            "attachments": [{
+                "title": "Hey! Thanks for Installing Gimme. I'm Gimme Bot, your personal chatbot for news,stocks,weather and more. Please read the instructions below to use Gimme.",
+                "description": "\/gimme [news] category\n\/gimme [weather] city\n\/gimme [stocks] stock\n\/gimme [cricscores]\n\/gimme [forex]\n\/gimme [meaning] word\nto know more visit: https:\/\/gimme-app.github.io/showcase.html" + "\n" + "NOTE : All the above functionality can be used in private by asking me. Only difference is  that you need not use the slash command and type in all the commands mentioned above without the slash (/) ." + "\n" + "Feel free to talk to me. Thanks! We hope you have a great time using Gimme. "
+            }]
+        },
+
+        function(error, response) {
+            if (error) {
+                console.log(error);
+            }
+        });
+
 });
 
 //remove user id from db on uninstall
@@ -63,7 +79,7 @@ flock.events.on('app.uninstall', function(event) {
     }, function(err, doc) {
         if (err) throw err;
     });
-        console.log(event.userId + " uninstalled Gimme");
+    console.log(event.userId + " uninstalled Gimme");
 
 
 });
@@ -83,12 +99,12 @@ flock.events.on('client.slashCommand', function(event) {
     });
 
 
-
-var first = event.chat[0];
-if(first === "g")
-	 receiver = event.chat;
-	else
-		receiver = event.userId;
+var receiver;
+    var first = event.chat[0];
+    if (first === "g")
+        receiver = event.chat;
+    else
+        receiver = event.userId;
     //sub categories
     var service = text[0];
     console.log(event.userName + " used Slash command " + service);
@@ -99,8 +115,8 @@ if(first === "g")
             var category = text[1];
             if (category == undefined)
                 category = "general";
-                console.log(event.userName + " selected category " + category);
-                news.getNews(category,receiver);
+            console.log(event.userName + " selected category " + category);
+            news.getNews(category, receiver);
             //End of news
             break;
 
@@ -109,15 +125,54 @@ if(first === "g")
             var uri;
             var current;
             var place = text[1];
-            console.log(event.userName + " selected city " + place);
-            weather.getWeather(place,receiver);
+            if (place == undefined) {
+
+                flock.callMethod('chat.sendMessage', config.botToken, {
+                        to: event.userId,
+                        "text": "",
+                        "attachments": [{
+                            "title": "Please specify the location to get weather",
+                            "description": "To know more read the docs at https:\/\/gimme-app.github.io/showcase.html"
+                        }]
+                    },
+
+                    function(error, response) {
+                        if (error) {
+                            console.log(error);
+                        }
+                    });
+            } else {
+                console.log(event.userName + " selected city " + place);
+                weather.getWeather(place, receiver);
+            }
             break;
 
             // Start of stock
         case "stocks":
+            var bot = false;
             var org = text[1];
-            console.log(event.userName + " selected Stock Symbol " + org);
-            stocks.getStocks(org,receiver);
+            var findSymbolsUrl = "https://www.nseindia.com/content/corporate/eq_research_reports_listed.htm";
+
+            if (org == undefined) {
+
+                flock.callMethod('chat.sendMessage', config.botToken, {
+                        to: event.userId,
+                        "text": "",
+                        "attachments": [{
+                            "title": "Please specify the organisation's name to get stock details",
+                            "description": "The list of symbols are available at" + findSymbolsUrl + "\n" + "To know more read the docs at https:\/\/gimme-app.github.io/showcase.html"
+                        }]
+                    },
+
+                    function(error, response) {
+                        if (error) {
+                            console.log(error);
+                        }
+                    });
+            } else {
+                console.log(event.userName + " selected Stock Symbol " + org);
+                stocks.getStocks(org, event, receiver);
+            }
             break;
             //End of stock
 
@@ -135,37 +190,56 @@ if(first === "g")
         case "meaning":
             var word = text[1];
             console.log(event.userName + " selected word " + word);
-            dictionary.getMeaning(word,receiver);
+            dictionary.getMeaning(word, receiver);
             break;
 
-        case "help":            
+        case "help":
+
+            flock.callMethod('chat.sendMessage', config.botToken, {
+                    to: event.userId,
+                    "text": "",
+                    "attachments": [{
+                        "title": "Help",
+                        "description": "\/gimme [news] category\n\/gimme [weather] city\n\/gimme [stocks] stock\n\/gimme [cricscores]\n\/gimme [forex]\n\/gimme [meaning] word\nto know more visit: https:\/\/gimme-app.github.io/showcase.html"
+                    }]
+                },
+
+                function(error, response) {
+                    if (error) {
+                        console.log(error);
+                    }
+                });
+
         default:
             flock.callMethod('chat.sendMessage', config.botToken, {
-                to: event.userId,
-                "text": "",
-                "attachments": [{
-                    "title": "Help",
-                    "description": "\/gimme [news] category\n\/gimme [weather] city\n\/gimme [stocks] stock\n\/gimme [cricscores]\n\/gimme [forex]\n\/gimme [meaning] word\nto know more visit: https:\/\/gimme-app.github.io/showcase.html"
-                }]
-            },
+                    to: event.userId,
+                    "text": "",
+                    "attachments": [{
+                        "title": "Help",
+                        "description": "\/gimme [news] category\n\/gimme [weather] city\n\/gimme [stocks] stock\n\/gimme [cricscores]\n\/gimme [forex]\n\/gimme [meaning] word\nto know more visit: https:\/\/gimme-app.github.io/showcase.html"
+                    }]
+                },
 
-            function(error, response) {
-                if (error) {
-                    console.log(error);
-                }
-            });
+                function(error, response) {
+                    if (error) {
+                        console.log(error);
+                    }
+                });
 
-       		   
+
     }
 
 });
 
-flock.events.on('chat.receiveMessage',function(event){
-bot.getReply(event);
+
+
+flock.events.on('chat.receiveMessage', function(event) {
+    bot.getReply(event);
 });
 
 
 
+//for widget
 
 //this starts the listening on the particular port
 app.listen(process.env.PORT, function() {

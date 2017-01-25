@@ -19,21 +19,21 @@
                 console.log("Fetching forex information");
                 var body = JSON.parse(body);
                 var command = "/gimme forex";
-                var usd = body.rates.USD;
-                var aud = body.rates.AUD;
-                var sgd = body.rates.SGD;
-                var brl = body.rates.BRL;
-                var cad = body.rates.CAD;
-                var chf = body.rates.CHF;
-                var eur = body.rates.EUR;
-                var czk = body.rates.CZK;
-                var dkk = body.rates.DKK;
-                var gbp = body.rates.GBP;
-                var hkd = body.rates.HKD;
-                var hrk = body.rates.HRK;
-                var huf = body.rates.HUF;
-                var jpy = body.rates.JPY;
-                var nzd = body.rates.NZD;
+                var usd = Math.round(1/body.rates.USD*1000)/1000;
+                var aud = Math.round(1/body.rates.AUD*1000)/1000;
+                var sgd = Math.round(1/body.rates.SGD*1000)/1000;
+                var brl = Math.round(1/body.rates.BRL*1000)/1000;
+                var cad = Math.round(1/body.rates.CAD*1000)/1000;
+                var chf = Math.round(1/body.rates.CHF*1000)/1000;
+                var eur = Math.round(1/body.rates.EUR*1000)/1000;
+                var czk = Math.round(1/body.rates.CZK*1000)/1000;
+                var dkk = Math.round(1/body.rates.DKK*1000)/1000;
+                var gbp = Math.round(1/body.rates.GBP*1000)/1000;
+                var hkd = Math.round(1/body.rates.HKD*1000)/1000;
+                var hrk = Math.round(1/body.rates.HRK*1000)/1000;
+                var huf = Math.round(1/body.rates.HUF*1000)/1000;
+                var jpy = Math.round(1/body.rates.JPY*1000)/1000;
+                var nzd = Math.round(1/body.rates.NZD*1000)/1000;
                 console.log("Sending message");
                 flock.callMethod('chat.sendMessage', config.botToken, {
                         to: receiver,

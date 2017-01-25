@@ -1,3 +1,4 @@
+   'use strict';
    var express = require('express');
    var flock = require('flockos');
    var http = require('http');
@@ -8,6 +9,8 @@
 
 
 exports.getWeather = function(place,receiver){
+var options;
+
 	var locationsuri = 'http://dataservice.accuweather.com/locations/v1/cities/autocomplete' + '?' + qs.stringify({
                 apikey: config.WeatherApiKey,
                 q: place,
@@ -52,8 +55,10 @@ exports.getWeather = function(place,receiver){
                         }
                         console.log("Fetching Current Conditions");
                         var weatherbody = JSON.parse(weatherbody);
-                        current = weatherbody[0];
-                        iconid = current.WeatherIcon;
+                         var current = weatherbody[0];
+
+                        var iconid = current.WeatherIcon;
+                        var iconurl;
                         if(iconid <= 6 || iconid == 20 || iconid == 21 || iconid == 23 || (iconid >=13 && iconid <= 17)){
                             color = "#f1c40f";
                         } else if ((iconid >6 && iconid <= 12) || iconid == 19 || iconid == 18 || iconid == 22 || iconid == 26){

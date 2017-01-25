@@ -23,19 +23,41 @@ MongoClient.connect(config.dburl, function(err, db) {
     }
 });
 
-exports.getStocks = function(org, receiver) {
+exports.getStocks = function(org, event, receiver) {
     var symbol = org;
     var stockName;
     collection = mongoConnection.collection('stocks');
     collection.findOne({
         "SYMBOL": symbol.toUpperCase()
     }, function(err, document) {
-        stockName = document.NAME;
+        if (document != null)
+            stockName = document.NAME;
+        var findSymbolsUrl = "https://www.nseindia.com/content/corporate/eq_research_reports_listed.htm";
+        if (err || document == null) {
+            flock.callMethod('chat.sendMessage', config.botToken, {
+                    to: event.userId,
+                    "text": "",
+                    "attachments": [{
+                        "title": "Please specify an appropriate organisation symbol to know the stock values.",
+                        "color": "#ff0000",
+                        "description": "For the list of symbols available refer" + "\n" + findSymbolsUrl
+                    }]
+                },
+
+                function(error, response) {
+                    if (error) {
+                        console.log(error);
+                    } else {
+                        console.log("message sent");
+                    }
+                });
+
+        }
     });
     var uri = "http://finance.google.com/finance/info?client=ig&q=NSE:" + symbol;
     var options = {};
     request.get(uri, options, function(err, res, body) {
-        if (err) {
+        if (err || res.statusCode == 400 || res.statusCode == 404) {
             return {
                 text: "Could'nt fetch Stock Details. Please Try Again Later."
             }
@@ -53,7 +75,7 @@ exports.getStocks = function(org, receiver) {
                 "text": "",
                 "attachments": [{
                     "title": stockName,
-                    "color" : "#FFD700",
+                    "color": "#FFD700",
                     "description": "Symbol: " + stock + "\n" +
                         "price: " + price + "\n" +
                         "Change: " + change + " ( " + changepercent + " % )"
@@ -64,7 +86,7 @@ exports.getStocks = function(org, receiver) {
             function(error, response) {
                 if (error) {
                     console.log(error);
-                } else{
+                } else {
                     console.log("message sent");
                 }
             });
